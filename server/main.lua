@@ -14,7 +14,7 @@ playerMessageLogs = {}
 mutedPlayers = {}
 
 RegisterServerEvent("_chat:messageEntered")
-AddEventHandler("_chat:messageEntered", function(message, playerJob)
+AddEventHandler("_chat:messageEntered", function(message)
     local source = source
     local author
 
@@ -74,7 +74,7 @@ AddEventHandler("_chat:messageEntered", function(message, playerJob)
     end
 
     if not WasEventCanceled() then
-        lib.TriggerClientEvent('chatMessage', -1, author, message, source, BRIDGE:GetPlayerGroup(source), isSystemMessage)
+        lib.TriggerClientEvent('chatMessage', -1, author, message, source, BRIDGE:GetPlayerGroup(source), false)
     end
 end)
 
