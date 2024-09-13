@@ -17,7 +17,7 @@
 ## Convars Available
 
 ```cfg
-setr LGF_Chat:bot_token "my_token"
+set LGF_Chat:bot_token "my_token"
 setr LGF_Chat:ToggleChat "T" 
 ```
 
