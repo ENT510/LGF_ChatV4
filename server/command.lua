@@ -1,4 +1,5 @@
 lib.addCommand(CFG.Command.Admin, {
+   help = ""
 }, function(source, args, rawCommand)
     local playerId = source
     local playerName = BRIDGE:GetPlayerName(playerId)
@@ -14,6 +15,7 @@ end)
 
 
 lib.addCommand(CFG.Command.MutePlayer, {
+    help = ""
 }, function(source, args, rawCommand)
     local playerId = source
     local playerGroup = BRIDGE:GetPlayerGroup(playerId)
