@@ -1,5 +1,5 @@
 local Legacy = exports.LEGACYCORE:GetCoreData()
 
-local Core = {}
+local BRIDGE = {}
 
-return Core
+return BRIDGE

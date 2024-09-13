@@ -1,29 +1,22 @@
-local isUIOpen = false
-local MSG = {}
+CreateThread(function()
+  DisableMultiplayerChat(false)
+  SetTextChatEnabled(false)
+end)
+
+LocalPlayer.state.ChatIsOpen = false
 Encode = json.encode
 Decode = json.decode
 
-function ShowNui(action, shouldShow, id)
+function ShowChat(action, shouldShow, id)
   SetNuiFocus(shouldShow, shouldShow)
   SendNUIMessage({ action = action, data = { visible = shouldShow, id = id } })
-  if action == 'openChat' then
-    isUIOpen = true
-  end
-end
-
-function SendNUI(action, data)
-  SendNUIMessage({ action = action, data = data })
+  if action == 'openChat' then LocalPlayer.state.ChatIsOpen = shouldShow end
 end
 
 RegisterNUICallback('sendMessage', function(data, cb)
   local message = data.message
-  if message:sub(1, 1) == "/" then
-    cb({ status = 'success' })
-    return ExecuteCommand(data.message:sub(2))
-  end
-
-  TriggerServerEvent("_chat:messageEntered", message, "police")
-  cb({ status = 'success' })
+  if message:sub(1, 1) == "/" then return ExecuteCommand(data.message:sub(2)) end
+  TriggerServerEvent("_chat:messageEntered", message, nil)
 end)
 
 
@@ -45,52 +38,49 @@ RegisterNetEvent("chatMessage", function(author, message, source, playerJob, isS
 end)
 
 RegisterNUICallback("LGF_Chat_V4.GetConfig", function(data, callback)
-  callback({
-    EnableGroupMessage = CFG.EnableGroupMessage
-  })
-end)
-
-RegisterNUICallback("LGF_Chat_V4.GetPlayerGroup", function(data, callback)
-  local playerGroup = "admin"
-  local groupAllowed = { "admin", "mod" }
-
-  callback({
-    PlayerGroup = playerGroup,
-    GroupAllowed = groupAllowed
-  })
+  callback({ EnableGroupMessage = CFG.EnableGroupMessage })
 end)
 
 
-
-RegisterNuiCallback('ui:Close', function(data, cb)
+RegisterNuiCallback('LGF_Chat_V4:CloseChat', function(data, callback)
   SetNuiFocus(false, false)
   if data.name == 'openChat' then
-    isUIOpen = false
-    cb(true)
+    LocalPlayer.state.ChatIsOpen = false
+    callback(true)
   end
-  SetTimeout(2000, function() ShowNui(data.name, false, nil) end)
+  SetTimeout(2000, function() ShowChat(data.name, false, nil) end)
 end)
 
 
-RegisterNUICallback('sendSystemMessage', function(data, cb)
+RegisterNUICallback('sendSystemMessage', function(data, callback)
   Utils.DebugPrint(Encode(data, { indent = true }))
   local message = data.message
-  TriggerServerEvent("_chat:messageEntered", message, "system")
-  cb({ status = 'success' })
+  TriggerServerEvent("ClearChat", nil, "system")
+  callback({ status = 'success' })
 end)
 
-local keybind = lib.addKeybind({
-  name = 'open_new_chat+1',
-  description = 'press F to pay respects',
-  defaultKey = 'Z',
-  onPressed = function(self)
-    local show = false
-    show = not show
-    ShowNui('openChat', show, cache.serverId)
-  end,
-})
 
+RegisterNetEvent("__cfx_internal:serverPrint")
+AddEventHandler("__cfx_internal:serverPrint", function(msg)
+  if not CFG.EnablePrintSystem then return end
+  if msg and msg ~= "" and msg:sub(1, 1) ~= "/" then
+    SendNUIMessage({ action = 'addSendMessage', data = { message = msg, author = "System", isSystemMessage = true } })
+  end
+end)
 
-function IsUi()
-  return isUIOpen
+CreateBind = function()
+  local GetBind = GetConvar("LGF_Chat:ToggleChat", "Z")
+  lib.addKeybind({
+    name = 'open_new_chat+1',
+    description = 'Press Z to toggle chat visibility',
+    defaultKey = GetBind,
+    onPressed = function(self)
+      local SHOWCHAT = not GetChatState()
+      ShowChat('openChat', SHOWCHAT, cache.serverId)
+    end,
+  })
 end
+
+CreateThread(CreateBind)
+
+function GetChatState() return LocalPlayer.state.ChatIsOpen end

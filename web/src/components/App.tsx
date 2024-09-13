@@ -22,7 +22,7 @@ const App: React.FC = () => {
       if (chatVisible && e.code === 'Escape') {
         if (!isEnvBrowser()) {
           if (chatVisible) {
-            fetchNui('ui:Close', { name: 'openChat' });
+            fetchNui('LGF_Chat_V4:CloseChat', { name: 'openChat' });
           }
         } else {
           setChatVisible(false);

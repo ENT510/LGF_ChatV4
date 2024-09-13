@@ -68,10 +68,12 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
   const [textSize, setTextSize] = useState(14);
   const [chatColor, setChatColor] = useState("#252525fa");
   const [darkMode, setDarkMode] = useState(false);
-  const [notificationList, setNotificationList] = useState<{
-    id: number;
-    author: string;
-  }[]>([]);
+  const [notificationList, setNotificationList] = useState<
+    {
+      id: number;
+      author: string;
+    }[]
+  >([]);
   const [notificationSoundEnabled, setNotificationSoundEnabled] =
     useState(false);
   const [notificationVolume, setNotificationVolume] = useState(1);
@@ -195,6 +197,7 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
 
   const sendMessage = async () => {
     if (newMessage.trim()) {
+      setNewMessage("");
       const now = new Date();
       const currentTime = now.toLocaleTimeString([], {
         hour: "2-digit",
@@ -208,9 +211,7 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
 
       try {
         await fetchNui("sendMessage", messageData);
-        setNewMessage("");
       } catch (error) {
-        console.error("Failed to send message:", error);
       }
     }
   };
@@ -231,7 +232,6 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
     try {
       await fetchNui("sendSystemMessage", systemMessageData);
     } catch (error) {
-      console.error("Failed to send system message:", error);
     }
   };
 
@@ -241,7 +241,7 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
 
   const clearChat = () => {
     setMessages([]);
-    sendSystemMessage("Chat has been cleared.");
+
   };
 
   const handleTextSizeChange = (value: number) => {
@@ -404,7 +404,12 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
               value={newMessage}
               icon={<IconAt size={20} />}
               onChange={(e) => setNewMessage(e.currentTarget.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  sendMessage();
+                  setNewMessage("");
+                }
+              }}
               style={{ flex: 1, marginRight: "10px" }}
               rightSection={
                 <Tooltip label="This is public" position="top-end" withArrow>
@@ -417,7 +422,16 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
                 </Tooltip>
               }
               ref={inputRef}
+              styles={(theme) => ({
+                input: {
+                  borderColor: "transparent", 
+                  "&:focus": {
+                    borderColor: "transparent",
+                  },
+                },
+              })}
             />
+
             <Button
               leftIcon={<IconMessage size={19} />}
               variant="light"

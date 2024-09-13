@@ -1,4 +1,4 @@
 local Qbox = exports['qb-core']:GetCoreObject()
-local Core = {}
+local BRIDGE = {}
 
-return Core
+return BRIDGE
