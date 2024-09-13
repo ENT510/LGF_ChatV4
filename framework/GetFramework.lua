@@ -1,4 +1,5 @@
 local FRAMEWORK = {}
+local CACHED_FRAMEWORKS = {}
 
 local CONTEXT_PATHS = {
     CLIENT = 'client',
@@ -7,16 +8,12 @@ local CONTEXT_PATHS = {
 
 --[[ NEED TO CALL THE FOLDER WHIT THE NAME ASSOCIATED]]
 local FRAMEWORKS = {
-    ES_EXTENDED = { folder = 'esx' },
-    QB_CORE = { folder = 'qbox' },
-    LEGACYCORE = { folder = 'legacy' },
-    CUSTOM = { folder = 'custom' }
+    ['es_extended'] = { folder = 'esx' },
+    ['qb-core'] = { folder = 'qbox' },
+    ['LEGACYCORE'] = { folder = 'legacy' },
+    ['CUSTOM'] = { folder = 'custom' }
 }
 
-
-local CACHED_FRAMEWORKS = {}
-
---- Creates a new instance of FRAMEWORK.
 
 function FRAMEWORK:new()
     local OBJ = {}

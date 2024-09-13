@@ -1,4 +1,4 @@
-local ESX  = exports.es_extended:getSharedObject()
+local ESX <const> = exports.es_extended:getSharedObject()
 local BRIDGE = {}
 
 

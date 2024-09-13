@@ -14,7 +14,7 @@ CFG.NameUsed = "char" -- "steam" or "char"
 
 -- Allowed groups for sending admin messages [for qbox use Ace Perms, go to framework/qbox/server.lua and add or remove group in function BRIDGE:GetPlayerGroup]
 CFG.GroupAllowed = {
-    ["admin"] = false,
+    ["admin"] = true,
     ["player"] = true,
 }
 
