@@ -89,3 +89,7 @@ RegisterNetEvent("LGF_Chat_V4:ClearChatMessage", function()
     if not source then return end
     lib.TriggerClientEvent('chatMessage', source, "System", "Chat Cleared Correctly", source, "system", true)
 end)
+
+
+lib.versionCheck('ENT510/LGF_ChatV4') 
+
