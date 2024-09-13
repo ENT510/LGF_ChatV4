@@ -1,8 +1,8 @@
-local ESX <const> = exports.es_extended:getSharedObject()
+local ESX  = exports.es_extended:getSharedObject()
 local BRIDGE = {}
 
 
-function Core:GetPlayerData(src)
+function BRIDGE:GetPlayerData(src)
     local xPlayer = ESX.GetPlayerFromId(src)
     if xPlayer then
         return xPlayer
@@ -11,8 +11,8 @@ function Core:GetPlayerData(src)
     end
 end
 
-function Core:GetPlayerGroup(src)
-    local xPlayer = Core:GetPlayerData(src)
+function BRIDGE:GetPlayerGroup(src)
+    local xPlayer = BRIDGE:GetPlayerData(src)
     if xPlayer then
         return xPlayer.getGroup()
     end
