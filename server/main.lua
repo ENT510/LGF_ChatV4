@@ -18,6 +18,12 @@ AddEventHandler("_chat:messageEntered", function(message)
     local source = source
     local author
 
+    if not source or type(source) ~= "number" or source <= 0 or GetPlayerName(source) == nil then
+        CancelEvent()
+        Utils.DebugPrint("hi")
+        return
+    end
+
     if CFG.NameUsed == "steam" then
         author = GetPlayerName(source)
     elseif CFG.NameUsed == "char" then
@@ -25,12 +31,12 @@ AddEventHandler("_chat:messageEntered", function(message)
     end
 
     if not message or not author then return end
-    local isSystemMessage = (playerJob == "system")
-    
+
     if spamProtection.enableAntiSpam then
         if mutedPlayers[source] and mutedPlayers[source] > os.time() then
             local remainingTime = mutedPlayers[source] - os.time()
-            lib.TriggerClientEvent('chatMessage', source, "System",  ("You are muted. Wait %d seconds."):format(remainingTime), source, "system", true)
+            TriggerClientEvent('chatMessage', source, "System", ("You are muted. Wait %d seconds."):format(remainingTime),
+                source, "system", true)
             CancelEvent()
             return
         elseif mutedPlayers[source] and mutedPlayers[source] <= os.time() then
@@ -55,10 +61,10 @@ AddEventHandler("_chat:messageEntered", function(message)
 
             if playerMessageLogs[source].warnings >= spamProtection.warningsBeforeMute then
                 mutedPlayers[source] = currentTime + spamProtection.muteTime
-                lib.TriggerClientEvent('chatMessage', source, "System", ("You have been muted for spamming. Wait %d seconds."):format(spamProtection.muteTime), source, "system", true)
-                lib.TriggerClientEvent('chatMessage', -1, "System", ("Player %s has been muted for spamming. They will be muted for %d seconds."):format(author, spamProtection.muteTime), source, "system", true)
+                TriggerClientEvent('chatMessage', source, "System", ("You have been muted for spamming. Wait %d seconds."):format(spamProtection.muteTime), source, "system", true)
+                TriggerClientEvent('chatMessage', -1, "System", ("Player %s has been muted for spamming. They will be muted for %d seconds."):format(author, spamProtection.muteTime), source, "system", true)
             else
-                lib.TriggerClientEvent('chatMessage', source, "System", ("Stop spamming! You will be muted after %d more warnings."):format(spamProtection .warningsBeforeMute - playerMessageLogs[source].warnings), source, "system", true)
+                TriggerClientEvent('chatMessage', source, "System",("Stop spamming! You will be muted after %d more warnings."):format(spamProtection .warningsBeforeMute - playerMessageLogs[source].warnings), source, "system", true)
             end
 
             CancelEvent()
@@ -68,13 +74,13 @@ AddEventHandler("_chat:messageEntered", function(message)
 
 
     if Functions.containsBadWord(message) then
-        lib.TriggerClientEvent('chatMessage', source, "System", "Your message contains inappropriate words and has been blocked.", source, "system", true)
+        TriggerClientEvent('chatMessage', source, "System", "Your message contains inappropriate words and has been blocked.", source, "system", true)
         CancelEvent()
         return
     end
 
     if not WasEventCanceled() then
-        lib.TriggerClientEvent('chatMessage', -1, author, message, source, BRIDGE:GetPlayerGroup(source), false)
+        TriggerClientEvent('chatMessage', -1, author, message, source, BRIDGE:GetPlayerGroup(source), false)
     end
 end)
 
@@ -83,12 +89,4 @@ lib.callback.register("LGF_Chat_V4.Avatar.GetPlayerImage", function(target)
     return Functions.RequestAvatar(target)
 end)
 
-
-RegisterNetEvent("LGF_Chat_V4:ClearChatMessage", function()
-    local source = source
-    if not source then return end
-    lib.TriggerClientEvent('chatMessage', source, "System", "Chat Cleared Correctly", source, "system", true)
-end)
-
-
-lib.versionCheck('ENT510/LGF_ChatV4') 
+lib.versionCheck('ENT510/LGF_ChatV4')

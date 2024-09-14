@@ -17,6 +17,8 @@ import {
   Transition,
   Switch,
   Slider,
+  Autocomplete,
+  Box,
 } from "@mantine/core";
 import {
   IconTrash,
@@ -36,6 +38,7 @@ import newMessageSound from "./newmessage.wav";
 import { fetchNui } from "../utils/fetchNui";
 import defaultAvatar from "../img/fallback.png";
 import systemAvatar from "../img/system.png";
+import Lang from "../utils/LangR";
 
 interface ChatProps {
   visible: boolean;
@@ -57,10 +60,28 @@ interface Config {
   EnableGroupMessage: boolean;
 }
 
+interface Suggestion {
+  name: string;
+  help: string;
+}
+
+const Suggest = ({ value, label }: { value: string; label: string }) => (
+  <Box p="sm">
+    <Text weight={500} size="sm">
+      {value}
+    </Text>
+    <Text size="xs" color="dimmed">
+      {label}
+    </Text>
+  </Box>
+);
+
 const DEFAULT_AVATAR = defaultAvatar;
 const SYSTEM_MESSAGE_AVATAR = systemAvatar;
 
 const Chat: React.FC<ChatProps> = ({ visible, id }) => {
+
+  const lang = Lang();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -84,7 +105,11 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const soundRef = useRef<HTMLAudioElement>(new Audio(newMessageSound));
   const [config, setConfig] = useState<Config>({ EnableGroupMessage: true });
-
+  const [suggestions, setSuggestions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [messageHistory, setMessageHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number | null>(null);
   useEffect(() => {
     soundRef.current.volume = notificationVolume;
   }, [notificationVolume]);
@@ -157,6 +182,31 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
   }, [notificationSoundEnabled, notificationVolume, id, isVisible]);
 
   useEffect(() => {
+    const handleSuggestions = (event: MessageEvent) => {
+      const data = event.data;
+
+      if (data.action === "addSuggestion") {
+        if (data.suggestion && typeof data.suggestion === "object") {
+          const formattedSuggestion = {
+            value: data.suggestion.name || "",
+            label: data.suggestion.help || "",
+          };
+          setSuggestions((prevSuggestions) => [
+            ...prevSuggestions,
+            formattedSuggestion,
+          ]);
+        }
+      }
+    };
+
+    window.addEventListener("message", handleSuggestions);
+
+    return () => {
+      window.removeEventListener("message", handleSuggestions);
+    };
+  }, []);
+
+  useEffect(() => {
     if (visible) {
       setIsVisible(true);
       inputRef.current?.focus();
@@ -197,7 +247,10 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
 
   const sendMessage = async () => {
     if (newMessage.trim()) {
+      setMessageHistory((prevHistory) => [...prevHistory, newMessage.trim()]);
+      setHistoryIndex(null);
       setNewMessage("");
+ 
       const now = new Date();
       const currentTime = now.toLocaleTimeString([], {
         hour: "2-digit",
@@ -211,9 +264,20 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
 
       try {
         await fetchNui("sendMessage", messageData);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
+  };
+
+  const resetChatColor = () => {
+    setChatColor("#252525fa");
+  };
+
+  const handleTextSizeChange = (value: number) => {
+    setTextSize(value);
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const sendSystemMessage = async (message: string) => {
@@ -231,25 +295,12 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
     };
     try {
       await fetchNui("sendSystemMessage", systemMessageData);
-    } catch (error) {
-    }
-  };
-
-  const resetChatColor = () => {
-    setChatColor("#252525fa");
+    } catch (error) {}
   };
 
   const clearChat = () => {
     setMessages([]);
-
-  };
-
-  const handleTextSizeChange = (value: number) => {
-    setTextSize(value);
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    sendSystemMessage("Chat Cleared Correctly");
   };
 
   return (
@@ -399,20 +450,60 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
 
         <div className="input-container">
           <Flex mih={45} justify="flex-end" align="flex-end" wrap="nowrap">
-            <TextInput
+            <Autocomplete
               placeholder="Type your message..."
               value={newMessage}
               icon={<IconAt size={20} />}
-              onChange={(e) => setNewMessage(e.currentTarget.value)}
+              transitionProps={{
+                transition: "pop-top-left",
+                duration: 80,
+                timingFunction: "ease",
+              }}
+              onChange={(value) => {
+                setNewMessage(value);
+                setHistoryIndex(null);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   sendMessage();
-                  setNewMessage("");
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  if (historyIndex === null && messageHistory.length > 0) {
+                    setHistoryIndex(messageHistory.length - 1);
+                    setNewMessage(messageHistory[messageHistory.length - 1]);
+                  } else if (historyIndex !== null && historyIndex > 0) {
+                    setHistoryIndex(historyIndex - 1);
+                    setNewMessage(messageHistory[historyIndex - 1]);
+                  }
+                } else if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  if (
+                    historyIndex !== null &&
+                    historyIndex < messageHistory.length - 1
+                  ) {
+                    setHistoryIndex(historyIndex + 1);
+                    setNewMessage(messageHistory[historyIndex + 1]);
+                  } else if (
+                    historyIndex !== null &&
+                    historyIndex === messageHistory.length - 1
+                  ) {
+                    setHistoryIndex(null);
+                    setNewMessage("");
+                  }
                 }
               }}
+              data={
+                newMessage.startsWith("/")
+                  ? suggestions.map((suggestion) => ({
+                      value: suggestion.value,
+                      label: suggestion.label,
+                    }))
+                  : []
+              }
+              itemComponent={Suggest}
               style={{ flex: 1, marginRight: "10px" }}
               rightSection={
-                <Tooltip label="This is public" position="top-end" withArrow>
+                <Tooltip label="Suggestion Data" position="top-end" withArrow>
                   <div>
                     <IconAlertCircle
                       size="1rem"
@@ -424,7 +515,7 @@ const Chat: React.FC<ChatProps> = ({ visible, id }) => {
               ref={inputRef}
               styles={(theme) => ({
                 input: {
-                  borderColor: "transparent", 
+                  borderColor: "transparent",
                   "&:focus": {
                     borderColor: "transparent",
                   },

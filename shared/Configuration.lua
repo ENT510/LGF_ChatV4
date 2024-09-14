@@ -15,7 +15,7 @@ CFG.NameUsed = "char" -- "steam" or "char"
 -- Allowed groups for sending admin messages [for qbox use Ace Perms, go to framework/qbox/server.lua and add or remove group in function BRIDGE:GetPlayerGroup]
 CFG.GroupAllowed = {
     ["admin"] = true,
-    ["player"] = true,
+    ["player"] = false,
 }
 
 -- Command configuration
@@ -28,4 +28,23 @@ CFG.Command = {
 CFG.BlackListedWords = {
     "fanculo",
     "stocazz"
+}
+
+-- Chat For Job
+CFG.JobChat = {
+    police = {                 -- Job Name
+        command = "pol",       --Command Name
+        label = "Police Chat", -- Chat Label
+        private = false,       -- If Private only Allowed job see the message
+    },
+    ambulance = {
+        command = "amb",
+        label = "Ambulance Chat",
+        private = false,
+    },
+    -- ambulance = {
+    --     command = "amb",
+    --     label = "Ambulance Chat",
+    --     private = false,
+    -- },
 }

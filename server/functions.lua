@@ -7,7 +7,6 @@ local GetPlayerIdentifierByType = GetPlayerIdentifierByType
 local PerformHttpRequest = PerformHttpRequest
 local avatar = {}
 
-
 function Functions.RequestAvatar(target)
     local discordId = GetPlayerIdentifierByType(target, "discord")
     if not discordId then return print("ERROR: Discord ID not found") end
@@ -46,12 +45,12 @@ function Functions.SendMessageToAllowedGroups(data, source)
         local playerGroup = BRIDGE:GetPlayerGroup(tonumber(playerId))
         if CFG.GroupAllowed[playerGroup] then
             allowedToSend = true
-            lib.TriggerClientEvent('chatMessage', playerId, BRIDGE:GetPlayerName(source), message, source, BRIDGE:GetPlayerGroup(source), false)
+            TriggerClientEvent('chatMessage', playerId, BRIDGE:GetPlayerName(source), message, source, BRIDGE:GetPlayerGroup(source), false)
         end
     end
 
     if not allowedToSend then
-        lib.TriggerClientEvent('chatMessage', source, "System", "No authorized to send Admin Message.", source, "system",  true)
+        TriggerClientEvent('chatMessage', source, "System", "No authorized to send Admin Message.", source, "system",  true)
     end
 end
 
