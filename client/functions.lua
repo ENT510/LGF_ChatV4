@@ -17,6 +17,7 @@ RegisterNUICallback('sendMessage', function(data, cb)
   local message = data.message
   if message:sub(1, 1) == "/" then return ExecuteCommand(data.message:sub(2)) end
   TriggerServerEvent("_chat:messageEntered", message, nil)
+    cb(true)
 end)
 
 
